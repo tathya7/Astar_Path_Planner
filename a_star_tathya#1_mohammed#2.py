@@ -174,3 +174,109 @@ cv2.rectangle(map, (900-clearance, 135), (1025, 375), (255, 255, 255), thickness
 
 # Final Black Rect
 cv2.rectangle(map, (900-clearance, 125+clearance+clearance), (1020-clearance, 375-clearance), (0, 0, 0), thickness=cv2.FILLED)
+
+################### MAIN A-STAR ALGO ##############
+
+moves = [Move1, Move2, Move3, Move4, Move5]
+
+check = True
+
+while check:
+    x_start = int(input("Enter the initial X position ({} to {}): ".format(0+clearance, width-clearance-1)))
+    y_start = int(input("Enter the initial Y Position ({} to {}): ".format(0+clearance, height-clearance-1)))
+    th_start = int(input("Enter the initial Orientation (0 to 360): "))
+    print("Your Start Node Is (X,Y,Angle): ", x_start, y_start, th_start)
+    # Converting the coordinates to the instructed coordinate system
+    y_start = height-y_start-1
+    # Checks if the given node is in the free space
+    if map[y_start, x_start,1] == 0:
+        cv2.circle(map,(x_start, y_start), 2, (0, 180, 0), -1)
+        check = False
+    # If the starting node is in obstacle space
+    else:
+        print("Starting Position is in the Obstacle space! Re-Enter the Position")
+
+check = True
+
+while check:
+    x_goal = int(input("Enter the Destination X Position ({} to {}): ".format(0+clearance, width-clearance-1)))
+    y_goal = int(input("Enter the Destination Y Position ({} to {}): ".format(0+clearance, height-clearance-1)))
+    th_goal= int(input("Enter the Goal Orientation (0 to 360): "))
+
+    print("Your Goal Node Is (X,Y,Angle): ", x_goal, y_goal, th_goal)
+    # Converting the coordinates to the instructed coordinate system
+    y_goal = height-y_goal-1 
+    # Checks if the given node is in the free space
+    if map[y_goal, x_goal,1] == 0:
+        # Checks if the start node and goal node are same
+        if (x_start, y_start) == (x_goal, y_goal):
+            print("Error! Start and Goal Position Cannot be Same")
+        else:
+            check = False
+    else:
+        print("Starting Position is in the Obstacle space! Re-Enter the Position")
+
+
+start = time.time()
+q = []
+heapq.heappush(q,(0,x_start,y_start,th_start))
+child2parent = {}
+
+# Modify the initial values to the visited space
+x_start_mod = modify_value(x_start,dist_threshold)
+y_start_mod = modify_value(y_start,dist_threshold)
+th_start_mod = modify_value(th_start, theta_threshold)
+
+#Initializing visited
+visited = {(x_start_mod, y_start_mod, th_start_mod):True}
+node_cost = {(x_start_mod, y_start_mod, th_start_mod):0} 
+cost2come = {(x_start_mod, y_start_mod, th_start_mod):0}
+
+reached = False
+
+while q:
+    cst, x_pos, y_pos,th = heapq.heappop(q)
+
+    x_mod = modify_value(x_pos,dist_threshold)
+    y_mod = modify_value(y_pos,dist_threshold)
+    th_mod = modify_value(th,theta_threshold)
+    prev_cst = cost2come[(x_mod,y_mod,th_mod)] 
+
+    if goal_check(x_pos, y_pos,th, x_goal, y_goal, th_goal) == True:
+        print("Goal Reached")
+        reached = True
+        break
+
+    for move in moves:
+        node = move(x_pos,y_pos,th)
+        if node is not None:
+            new_x, new_y, new_th = node
+
+            # Converting it to int to plot in map
+            x_map = int(round(new_x*2)/2)
+            y_map = int(round(new_y*2)/2)
+            th_map = int(round(new_th*2)/2)
+
+
+            if 0 <= new_x < width-1 and 0 <= new_y < height-1 and map[y_map, x_map, 1] == 0:
+
+                # Modifying for visited node space
+                newx_mod = modify_value(x_map, dist_threshold)
+                newy_mod = modify_value(y_map, dist_threshold)
+                newth_mod = modify_value(th_map, theta_threshold)
+
+                if (newx_mod, newy_mod, newth_mod) not in visited:
+
+
+                    cost2come[(newx_mod,newy_mod,newth_mod)] = prev_cst + ssize
+                    node_cost[(newx_mod,newy_mod,newth_mod)] = cost2come[(newx_mod,newy_mod,newth_mod)] + dist((new_x, new_y), (x_goal, y_goal))
+
+                    heapq.heappush(q,(node_cost[(newx_mod,newy_mod,newth_mod)], new_x, new_y, new_th))
+ 
+                    child2parent[(new_x, new_y,new_th)] = (x_pos, y_pos, th)
+                    visited[(newx_mod,newy_mod,newth_mod)] = True
+
+                if prev_cst > prev_cst + ssize :
+                    cost2come[(newx_mod,newy_mod,newth_mod)] = prev_cst + ssize 
+                    node_cost[(newx_mod,newy_mod,newth_mod)] = cost2come[(newx_mod,newy_mod,newth_mod)] +  dist((new_x, new_y), (x_goal, y_goal))
+                    child2parent[(new_x, new_y,new_th)] = (x_pos, y_pos, th)
