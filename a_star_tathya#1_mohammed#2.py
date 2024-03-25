@@ -1,3 +1,5 @@
+'''The link for the github repo for this project : https://github.com/tathya7/Astar_Path_Planner.git'''
+
 import numpy as np
 import cv2
 import heapq
