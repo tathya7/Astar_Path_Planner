@@ -280,3 +280,12 @@ while q:
                     cost2come[(newx_mod,newy_mod,newth_mod)] = prev_cst + ssize 
                     node_cost[(newx_mod,newy_mod,newth_mod)] = cost2come[(newx_mod,newy_mod,newth_mod)] +  dist((new_x, new_y), (x_goal, y_goal))
                     child2parent[(new_x, new_y,new_th)] = (x_pos, y_pos, th)
+
+end = time.time()          
+
+# If the goal is not reachable
+if reached == False:
+     print("Goal out of bounds")
+
+# Printing the runtime of the algorithm
+print("Generating Video..., Algorithm Time is: ", (end-start))
