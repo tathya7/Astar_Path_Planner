@@ -289,3 +289,46 @@ if reached == False:
 
 # Printing the runtime of the algorithm
 print("Generating Video..., Algorithm Time is: ", (end-start))
+
+############ GENERATING VIDEO ##############
+
+gen_path = generate_path(x_start,y_start, th_start, x_pos,y_pos, th, child2parent)
+
+path_vid = cv2.VideoWriter('a_star_path_final.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 50, (width, height))
+
+
+cv2.circle(map, (x_start,y_start), 6, (92,11,227),-1)
+cv2.circle(map, (x_goal,y_goal), 6, (0, 165, 255),-1)
+
+num_frames = 350
+j = 0
+
+for (x_,y_,angle) in child2parent:
+    j+=1
+    x1 = int(child2parent[(x_,y_,angle)][0])
+    y1 = int(child2parent[(x_,y_,angle)][1])
+    cv2.arrowedLine(map,(x1,y1), (int(x_),int(y_)), (225, 105, 65),tipLength=0.2)
+    if j == num_frames:
+        cv2.imshow('Video', map)
+        path_vid.write(map)
+        cv2.waitKey(1)  
+        j=0
+
+cv2.circle(map, (x_start,y_start), 6, (92,11,227),-1)
+cv2.circle(map, (x_goal,y_goal), 6 , (0, 165, 255),-1)
+
+for i in range(len(gen_path)-1):
+    cv2.arrowedLine(map,(int(gen_path[i][0]),int(gen_path[i][1])), (int(gen_path[i+1][0]),int(gen_path[i+1][1])), (0, 0, 255),tipLength=0.6)
+    cv2.imshow('Video', map)
+    path_vid.write(map)
+    cv2.waitKey(1) 
+
+last_frame = map
+for _ in range(200): 
+    path_vid.write(last_frame)
+
+path_vid.release()
+
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
